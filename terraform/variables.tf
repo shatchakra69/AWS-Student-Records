@@ -94,3 +94,9 @@ variable "db_multi_az" {
   type        = bool
   default     = false
 }
+
+variable "enable_cdn" {
+  description = "Put CloudFront + AWS WAF in front of the ALB (HTTPS at the edge, CDN, managed WAF rules). Off by default."
+  type        = bool
+  default     = false
+}

@@ -22,3 +22,8 @@ output "db_secret_arn" {
   description = "ARN of the Secrets Manager secret holding DB credentials."
   value       = aws_secretsmanager_secret.db.arn
 }
+
+output "cdn_url" {
+  description = "CloudFront HTTPS URL (only when enable_cdn = true)."
+  value       = var.enable_cdn ? "https://${aws_cloudfront_distribution.cdn[0].domain_name}" : null
+}
