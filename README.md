@@ -1,15 +1,15 @@
 # Highly Available and Scalable Student Records on AWS
 
-A production grade, three tier web application deployed on AWS as **Infrastructure as Code**.
-A student records CRUD app runs behind an **Application Load Balancer** across an
-**EC2 Auto Scaling Group** in private subnets, backed by a private **Amazon RDS (MySQL)**
-database, all inside a custom VPC with public and private subnet isolation across two
-Availability Zones. The same architecture is provided in **both Terraform and AWS CloudFormation**.
+A three tier student records web app I built and ran on AWS, defined end to end as
+**Infrastructure as Code**. A Node.js CRUD app sits behind an **Application Load Balancer**,
+runs on an **EC2 Auto Scaling Group** in private subnets, and keeps its data in a private
+**Amazon RDS (MySQL)** database. Everything lives in a custom VPC with separate public and
+private subnets across two Availability Zones. I wrote the whole stack twice, once in
+**Terraform** and once in **AWS CloudFormation**.
 
 [![CI](https://github.com/shatchakra69/AWS-Student-Records/actions/workflows/ci.yml/badge.svg)](https://github.com/shatchakra69/AWS-Student-Records/actions/workflows/ci.yml)
 
-> Built as a personal cloud engineering portfolio project. The entire stack is
-> reproducible, automatically validated Infrastructure as Code.
+> A personal portfolio project. Everything here is reproducible from code and checked in CI.
 
 ## Architecture
 
@@ -71,23 +71,23 @@ Each tier accepts traffic only from the tier directly in front of it.
 | Data | Amazon RDS for MySQL | Private subnets, reachable only by the app tier |
 | Egress | NAT Gateway | Public subnet |
 
-**Design highlights**
+**Design notes**
 
-- **Highly available:** the app tier spans two Availability Zones behind the ALB, and Auto Scaling replaces failed instances automatically.
-- **Secure by default:** RDS has no public access, least privilege security groups chain `internet to ALB to app to RDS`, and shell access is via **SSM Session Manager** with no SSH port open.
-- **No hardcoded secrets:** the database password is generated at deploy time and stored in **AWS Secrets Manager**, then read by instances through an IAM role.
-- **Observability:** CloudWatch alarms on app tier CPU and ALB target health.
+- The app tier runs in two Availability Zones behind the load balancer, and Auto Scaling replaces any instance that fails its health check.
+- The database has no public access. Security groups only allow `internet → ALB → app → RDS`, and I get a shell on the instances through SSM Session Manager instead of opening an SSH port.
+- The database password is generated at deploy time, kept in AWS Secrets Manager, and read by the instances through their IAM role, so nothing sensitive lands in the repo.
+- CloudWatch alarms watch app CPU and ALB target health.
 
 ## Tech stack
 
 - **App:** Node.js, Express, EJS, MySQL (`mysql2`)
 - **Infra:** Terraform and CloudFormation
 - **AWS:** VPC, ALB, EC2 Auto Scaling, RDS (MySQL), Secrets Manager, CloudWatch, IAM, NAT and Internet Gateway
-- **CI/CD:** GitHub Actions — app lint/test, `terraform validate`, `cfn-lint`, security scanning (tfsec, Checkov, cfn-nag), and an OIDC-based plan-on-PR / gated-apply deploy pipeline (no long-lived keys)
+- **CI/CD:** GitHub Actions running app lint/test, `terraform validate`, `cfn-lint`, security scans (tfsec, Checkov, cfn-nag), and an OIDC deploy pipeline that plans on PRs and applies behind a manual gate (no long-lived keys)
 
 ## Run it locally
 
-The app runs fully on your machine before any AWS deployment.
+You can run the app locally before deploying anything to AWS.
 
 ```bash
 # Option A: Docker (app and MySQL together)
@@ -127,13 +127,13 @@ Instances take 3 to 5 minutes to bootstrap and pass health checks. Cost is rough
 
 ### Live on AWS
 
-The full stack was deployed to AWS and verified end to end, then torn down to avoid ongoing charges. It is fully redeployable with a single `terraform apply`.
+I deployed the whole stack to AWS, confirmed the app worked end to end, then tore it down so it stops costing money. A single `terraform apply` brings it back.
 
 ![Running live on AWS](docs/screenshots/04-live-on-aws.png)
 
-*The application running on AWS, served by the EC2 Auto Scaling group behind the Application Load Balancer, with records read from the private RDS MySQL database.*
+*The app running on AWS. Traffic comes in through the load balancer to the EC2 instances, which read the records from the private RDS database.*
 
-**Verified infrastructure (AWS console):**
+**From the AWS console while it was live:**
 
 | ALB target health | Compute (two AZs) | Database (private) |
 |:---:|:---:|:---:|
