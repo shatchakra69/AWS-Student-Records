@@ -46,3 +46,27 @@ jobs:
           python-version: "3.12"
       - run: pip install cfn-lint
       - run: cfn-lint cloudformation/student-records.yaml
+
+  security:
+    name: Security scan (tfsec, checkov, cfn-nag)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Report-only (soft fail) so findings are visible in logs without
+      # breaking the build. Flip the soft-fail flags to enforce.
+      - name: tfsec (Terraform)
+        run: |
+          curl -sSL https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64 -o tfsec
+          chmod +x tfsec
+          ./tfsec ./terraform --soft-fail
+      - name: Checkov (IaC + Dockerfile)
+        run: |
+          pip install --quiet checkov
+          checkov -d . --quiet --compact --soft-fail
+      - name: cfn-nag (CloudFormation)
+        run: |
+          gem install cfn-nag --no-document
+          cfn_nag_scan --input-path cloudformation/student-records.yaml || true

@@ -1,0 +1,83 @@
+name: Deploy (Terraform)
+
+# Plan automatically on PRs that touch infra. Apply / destroy run ONLY via a
+# manual trigger, gated by the "production" environment (add required reviewers
+# there) — so merging never deploys or bills you by surprise.
+#
+# Requires (see terraform/github-oidc/README.md):
+#   - repo variable AWS_DEPLOY_ROLE_ARN  (OIDC role to assume)
+#   - repo variable TF_STATE_BUCKET      (remote state bucket)
+#   - a "production" environment with required reviewers
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Terraform action to run
+        type: choice
+        options: [plan, apply, destroy]
+        default: plan
+
+permissions:
+  id-token: write # request the OIDC token
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.action == 'plan')
+    name: Plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=student-records/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=student-records-tf-locks"
+      - run: terraform plan -input=false
+
+  apply:
+    if: github.event_name == 'workflow_dispatch' && inputs.action != 'plan'
+    name: ${{ inputs.action }}
+    runs-on: ubuntu-latest
+    environment: production # manual approval gate for apply / destroy
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=student-records/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=student-records-tf-locks"
+      - name: Apply
+        if: inputs.action == 'apply'
+        run: terraform apply -auto-approve -input=false
+      - name: Destroy
+        if: inputs.action == 'destroy'
+        run: terraform destroy -auto-approve -input=false

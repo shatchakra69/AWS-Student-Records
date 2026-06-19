@@ -83,7 +83,7 @@ Each tier accepts traffic only from the tier directly in front of it.
 - **App:** Node.js, Express, EJS, MySQL (`mysql2`)
 - **Infra:** Terraform and CloudFormation
 - **AWS:** VPC, ALB, EC2 Auto Scaling, RDS (MySQL), Secrets Manager, CloudWatch, IAM, NAT and Internet Gateway
-- **CI:** GitHub Actions running app lint and test, `terraform validate`, and `cfn-lint`
+- **CI/CD:** GitHub Actions — app lint/test, `terraform validate`, `cfn-lint`, security scanning (tfsec, Checkov, cfn-nag), and an OIDC-based plan-on-PR / gated-apply deploy pipeline (no long-lived keys)
 
 ## Run it locally
 
