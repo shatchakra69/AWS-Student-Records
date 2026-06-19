@@ -12,7 +12,7 @@ aws cloudformation deploy \
   --stack-name student-records \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides \
-      AppRepoUrl=https://github.com/shatchakra69/aws-student-records-ha.git
+      AppRepoUrl=https://github.com/shatchakra69/AWS-Student-Records.git
 ```
 
 Get the application URL once the stack is `CREATE_COMPLETE`:

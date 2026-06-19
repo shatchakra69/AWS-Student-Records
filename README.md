@@ -8,7 +8,7 @@ Availability Zones.
 
 The same architecture is provided in **both Terraform and AWS CloudFormation**.
 
-[![CI](https://github.com/shatchakra69/aws-student-records-ha/actions/workflows/ci.yml/badge.svg)](https://github.com/shatchakra69/aws-student-records-ha/actions/workflows/ci.yml)
+[![CI](https://github.com/shatchakra69/AWS-Student-Records/actions/workflows/ci.yml/badge.svg)](https://github.com/shatchakra69/AWS-Student-Records/actions/workflows/ci.yml)
 
 > Built end-to-end as a personal cloud-engineering portfolio project — the entire
 > stack is reproducible, automatically-validated Infrastructure as Code.
@@ -98,7 +98,7 @@ terraform init && terraform apply
 ```bash
 aws cloudformation deploy --template-file cloudformation/student-records.yaml \
   --stack-name student-records --capabilities CAPABILITY_NAMED_IAM \
-  --parameter-overrides AppRepoUrl=https://github.com/shatchakra69/aws-student-records-ha.git
+  --parameter-overrides AppRepoUrl=https://github.com/shatchakra69/AWS-Student-Records.git
 ```
 
 Instances take ~3–5 minutes to bootstrap and pass health checks. Cost is roughly
@@ -109,17 +109,32 @@ Full breakdown: [`docs/cost.md`](docs/cost.md).
 
 ## Screenshots
 
-**Student records — list view** (search, live record count, edit/delete per row)
+### Live on AWS
+
+The full stack was deployed to AWS and verified end-to-end, then torn down to
+avoid ongoing charges — it's fully redeployable with a single `terraform apply`.
+
+![Running live on AWS](docs/screenshots/04-live-on-aws.png)
+
+*The application running on AWS — served by the EC2 Auto Scaling group behind the
+Application Load Balancer, with records read from the private RDS MySQL database.*
+
+**Verified infrastructure (AWS console):**
+
+| ALB target health | Compute — multi-AZ | Database — private |
+|:---:|:---:|:---:|
+| ![Target health](docs/screenshots/05-aws-target-health.png) | ![Instances](docs/screenshots/06-aws-instances.png) | ![RDS](docs/screenshots/07-aws-rds.png) |
+| **2 / 2 targets healthy** | **2 instances** in `us-east-1a` + `us-east-1b` | **RDS MySQL** private · 2 live connections |
+
+### Application UI
+
+**List view** (search, live record count, edit/delete per row)
 
 ![Students list](docs/screenshots/01-students-list.png)
 
 | Add a student | Edit a student |
 |---|---|
 | ![Add student](docs/screenshots/02-add-student.png) | ![Edit student](docs/screenshots/03-edit-student.png) |
-
-> The application UI served by the EC2 app tier. Screenshots of the live AWS
-> environment (ALB target health, Auto Scaling group, RDS) can be added to
-> `docs/screenshots/` after a `terraform apply`.
 
 ---
 
