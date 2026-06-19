@@ -1,0 +1,7 @@
+# Copy to backend.hcl and set your globally-unique bucket name, then:
+#   terraform init -backend-config=backend.hcl
+bucket         = "REPLACE-with-your-unique-tf-state-bucket"
+key            = "student-records/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "student-records-tf-locks"
+encrypt        = true

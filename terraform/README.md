@@ -4,6 +4,13 @@ Provisions the full highly-available stack: VPC (3-tier subnets across 2 AZs),
 NAT/Internet gateways, Application Load Balancer, EC2 Auto Scaling Group, RDS
 MySQL, Secrets Manager, IAM, and CloudWatch alarms.
 
+## Remote state (recommended)
+
+State is stored remotely in S3 with DynamoDB locking (see [`backend.tf`](backend.tf)).
+Create the backend once via [`bootstrap/`](bootstrap/), then
+`terraform init -backend-config=backend.hcl`. For a quick local-only try you can
+skip this and run with local state.
+
 ## Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
