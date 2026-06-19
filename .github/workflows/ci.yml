@@ -68,5 +68,5 @@ jobs:
           checkov -d . --quiet --compact --soft-fail
       - name: cfn-nag (CloudFormation)
         run: |
-          gem install cfn-nag --no-document
+          sudo gem install cfn-nag --no-document
           cfn_nag_scan --input-path cloudformation/student-records.yaml || true
